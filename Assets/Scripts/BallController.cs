@@ -1,36 +1,47 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 namespace ballgame{
     public class BallController : MonoBehaviour
     {
         [Header("Moving Section")]
         [Range(0, 500)]
-        [SerializeField] float speed;
-        Rigidbody rb;
+        [SerializeField] private float speed;
+        [SerializeField] Vector3 jumpVector;
+        private Rigidbody rb;
 
         [Header("Jump Section")]
-        [SerializeField] LayerMask groundLayer;
+        [SerializeField] private bool isJumping;
+        [SerializeField] private LayerMask groundLayer;
         [Range(0, 5)]
-        [SerializeField] float groundRadius;
+        [SerializeField] private float groundRadius;
         [Range(0, 500)]
-        [SerializeField] float jumpModifier;
-        [SerializeField] bool grounded;
+        [SerializeField] private float jumpModifier;
+        [SerializeField] private bool grounded;
         
 
         [Header("Jetpack Section")]
-        [SerializeField] bool jetpack;
+        [SerializeField] private bool jetpack;
         [Range(0, 5000)]
-        [SerializeField] float jetForce;
+        [SerializeField] private float jetForce;
         [Range(0, 100)]
-        [SerializeField] float fuel;
+        [SerializeField] private float fuel;
         [Range(0, 100)]
-        [SerializeField] float maxFuel;
+        [SerializeField] private float maxFuel;
+        [SerializeField] Slider fuelSlider;
+        [SerializeField] GameObject trailEffect;
+
+        [Header("Points Section")]
+        public int coins;
+        [SerializeField] private TMP_Text coinsText;
 
         void Start() 
         {
             rb = GetComponent<Rigidbody>();
+            coins = 0;
         }
 
         void FixedUpdate() 
@@ -46,39 +57,43 @@ namespace ballgame{
 
             rb.AddForce(move * speed);
 
-            //Jump
+            //Jump && Jetpack
             grounded = Physics.CheckSphere(transform.position, groundRadius, (int)groundLayer);
 
-            if (grounded && Input.GetKeyDown(KeyCode.Space))
-            {
-                Jump();
-            }
-
-            //Jetpack
             if(!grounded){
                 jetpack = true;
             }else{
                 jetpack = false;
+                fuel = Mathf.Min(maxFuel, fuel + Time.fixedDeltaTime);
+                if(Input.GetKeyDown(KeyCode.Space))
+                {
+                    Jump();
+                }
             }
 
-            if(grounded){
-                 fuel = Mathf.Min(maxFuel, fuel + Time.fixedDeltaTime);
-            }
-
-            if(jetpack && Input.GetKey(KeyCode.Space) && fuel > 0){
+            if(jetpack && Input.GetKey(KeyCode.F) && fuel > 0){
                 Jetpack();
             }
+
+            fuelSlider.value = fuel;
+            bool jetpackTrail;
+            trailEffect.SetActive(jetpack);
         }
 
         void Jump()
         {
-            rb.AddForce(transform.up * jumpModifier, ForceMode.Impulse);
+            rb.AddForce(jumpVector * jumpModifier, ForceMode.Impulse);
         }
 
         void Jetpack()
         {
-            rb.AddForce(Vector3.up * jetForce * Time.fixedDeltaTime, ForceMode.Acceleration);
+            rb.AddForce(jumpVector * jetForce * Time.fixedDeltaTime, ForceMode.Acceleration);
             fuel = Mathf.Max(0, fuel - Time.fixedDeltaTime);
+        }
+
+        public void UpdateCoins()
+        {
+            coinsText.text = "Coins: " + coins.ToString();
         }
     }
 }
