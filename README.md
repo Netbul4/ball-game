@@ -1,6 +1,6 @@
 # ball-game
 
-A ball game for a test.
+Simple ball game for a job test.
 
 ![ball](https://user-images.githubusercontent.com/104404614/206748464-e12ba3f5-d727-43e7-97cd-06e2947818e2.gif)
 
